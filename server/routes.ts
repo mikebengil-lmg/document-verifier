@@ -49,63 +49,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
 
-      // Try to call external validation service, fallback to mock for testing
-      try {
-        const response = await fetch('http://localhost:5000/hackathon/validate-docs', {
-          method: 'POST',
-          body: formData,
-          headers: formData.getHeaders(),
-        });
+      // Make API call to validation service
+      const response = await fetch('http://localhost:5000/hackathon/validate-docs', {
+        method: 'POST',
+        body: formData,
+        headers: formData.getHeaders(),
+      });
 
-        const responseText = await response.text();
-        
-        // Check if response is HTML (service not found)
-        if (responseText.startsWith('<!DOCTYPE') || responseText.startsWith('<html')) {
-          console.log('External validation service not found, using mock response for testing');
-          throw new Error('Service not found');
-        }
-
-        if (!response.ok) {
-          throw new Error(`Validation service returned ${response.status}`);
-        }
-
-        const validationResult = JSON.parse(responseText);
-        res.json(validationResult);
-      } catch (fetchError) {
-        console.log('Using mock validation response since external service is not available');
-        
-        // Mock response matching your expected format
-        const mockValidationResult = {
-          "AiValidationResult": {
-            "DocumentValidations": files.map((file, index) => ({
-              "DocumentIndex": index,
-              "FileName": file.originalname,
-              "Status": index === 0 ? "warning" : index === 1 ? "please for the love of cookies, review this" : "valid",
-              "MatchedType": index === 0 ? "DriversLicense" : index === 1 ? "Passport" : "BirthCertificate",
-              "Reason": index === 0 
-                ? `${file.originalname}: Name and DOB match, but address may need verification.`
-                : index === 1 
-                ? `${file.originalname}: Document requires manual review due to high fraud risk.`
-                : `${file.originalname}: Document appears valid.`,
-              "FraudRisk": index === 0 ? "medium" : index === 1 ? "high" : "low",
-              "FraudNotes": index === 0 
-                ? "Address verification recommended."
-                : index === 1 
-                ? "This document requires careful manual review."
-                : "No fraud indicators detected."
-            })),
-            "Suggestions": [
-              "BirthCertificate for Belle (child)",
-              "MarriageCertificate for Dad and Mom Belle",
-              "(You may skip these if you're preparing to upload them later or have uploaded them already.)"
-            ],
-            "Summary": `Processed ${files.length} documents. Some documents require review or verification.`
-          },
-          "UnclassifiedFiles": []
-        };
-
-        res.json(mockValidationResult);
+      if (!response.ok) {
+        throw new Error(`Validation service returned ${response.status}: ${response.statusText}`);
       }
+
+      const validationResult = await response.json();
+      console.log('Validation result:', validationResult);
+
+      res.json(validationResult);
     } catch (error) {
       console.error('Validation error:', error);
       res.status(500).json({ 
