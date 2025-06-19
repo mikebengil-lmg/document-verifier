@@ -38,13 +38,13 @@ export default function ResultsModal({
   );
 
   useEffect(() => {
-    if (results?.AiValidationResult?.DocumentValidations) {
+    if (results?.aiValidationResult?.validations) {
       // Pre-select documents that are not high risk or explicitly rejected
       const preSelected = new Set<number>();
-      results.AiValidationResult.DocumentValidations.forEach((doc, index) => {
+      results.aiValidationResult.validations.forEach((doc, index) => {
         if (
-          doc.FraudRisk !== "high" &&
-          !doc.Status.toLowerCase().includes("review")
+          doc.fraud_risk !== "high" &&
+          !doc.status.toLowerCase().includes("review")
         ) {
           preSelected.add(index);
         }
@@ -143,7 +143,7 @@ export default function ResultsModal({
                   Validation Summary
                 </h4>
                 <p className="text-gray-700">
-                  {results.AiValidationResult.Summary}
+                  {results.aiValidationResult.summary}
                 </p>
               </Card>
             </TabsContent>
@@ -153,7 +153,7 @@ export default function ResultsModal({
                   Inferred Storyline
                 </h4>
                 <p className="text-gray-700 whitespace-pre-line">
-                  {results.AiValidationResult.Storyline ||
+                  {results.aiValidationResult.storyline ||
                     "No storyline available."}
                 </p>
               </Card>
@@ -166,65 +166,59 @@ export default function ResultsModal({
               Document Validation Results
             </h4>
             <div className="space-y-4">
-              {results.AiValidationResult.DocumentValidations.map(
-                (doc, index) => (
-                  <Card key={index} className="border border-gray-200 p-4">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          id={`doc_${index}`}
-                          checked={selectedDocuments.has(index)}
-                          onCheckedChange={() => toggleDocument(index)}
-                          className="w-5 h-5"
-                        />
-                        <div>
-                          <h5 className="font-medium text-gray-900">
-                            {doc.FileName}
-                          </h5>
-                          {getStatusBadge(doc.Status, doc.FraudRisk)}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-500">
-                          Document Type
-                        </div>
-                        <div className="font-medium text-gray-900">
-                          {doc.MatchedType.replace(/([A-Z])/g, " $1").trim()}
-                        </div>
+              {results.aiValidationResult.validations.map((doc, index) => (
+                <Card key={index} className="border border-gray-200 p-4">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id={`doc_${index}`}
+                        checked={selectedDocuments.has(index)}
+                        onCheckedChange={() => toggleDocument(index)}
+                        className="w-5 h-5"
+                      />
+                      <div>
+                        <h5 className="font-medium text-gray-900">
+                          {doc.file_name}
+                        </h5>
+                        {getStatusBadge(doc.status, doc.fraud_risk)}
                       </div>
                     </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">Document Type</div>
+                      <div className="font-medium text-gray-900">
+                        {doc.matched_type.replace(/([A-Z])/g, " $1").trim()}
+                      </div>
+                    </div>
+                  </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">
-                          Validation Details
-                        </h6>
-                        <p className="text-sm text-gray-600">{doc.Reason}</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">
-                          Fraud Risk:{" "}
-                          <span
-                            className={`capitalize ${getFraudRiskColor(
-                              doc.FraudRisk
-                            )}`}
-                          >
-                            {doc.FraudRisk}
-                          </span>
-                        </h6>
-                        <p className="text-sm text-gray-600">
-                          {doc.FraudNotes}
-                        </p>
-                      </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h6 className="text-sm font-medium text-gray-700 mb-2">
+                        Validation Details
+                      </h6>
+                      <p className="text-sm text-gray-600">{doc.reason}</p>
                     </div>
-                  </Card>
-                )
-              )}
+                    <div>
+                      <h6 className="text-sm font-medium text-gray-700 mb-2">
+                        Fraud Risk:{" "}
+                        <span
+                          className={`capitalize ${getFraudRiskColor(
+                            doc.fraud_risk
+                          )}`}
+                        >
+                          {doc.fraud_risk}
+                        </span>
+                      </h6>
+                      <p className="text-sm text-gray-600">{doc.fraud_notes}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           </div>
 
           {/* Unclassified Files */}
-          {results.UnclassifiedFiles.length > 0 && (
+          {results.unclassifiedFiles.length > 0 && (
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-4">
                 Unclassified Files
@@ -235,7 +229,7 @@ export default function ResultsModal({
                   uploaded:
                 </p>
                 <div className="space-y-2">
-                  {results.UnclassifiedFiles.map((fileName, index) => (
+                  {results.unclassifiedFiles.map((fileName, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-2 text-sm text-gray-700"
@@ -256,7 +250,7 @@ export default function ResultsModal({
             </h4>
             <Card className="bg-blue-50 p-4">
               <div className="space-y-2 text-sm text-gray-700">
-                {results.AiValidationResult.Suggestions.map(
+                {results.aiValidationResult.suggestions.map(
                   (suggestion, index) => (
                     <div key={index} className="flex items-center gap-2">
                       {suggestion.includes("(") ? (

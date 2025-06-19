@@ -18,23 +18,23 @@ export type User = typeof users.$inferSelect;
 
 // Document validation schemas
 export const documentValidationSchema = z.object({
-  DocumentIndex: z.number(),
-  FileName: z.string(),
-  Status: z.string(),
-  MatchedType: z.string(),
-  Reason: z.string(),
-  FraudRisk: z.enum(["low", "medium", "high"]),
-  FraudNotes: z.string(),
+  document_index: z.number(),
+  file_name: z.string(),
+  status: z.string(),
+  matched_type: z.string(),
+  reason: z.string(),
+  fraud_risk: z.enum(["low", "medium", "high"]),
+  fraud_notes: z.string(),
 });
 
 export const validationResultSchema = z.object({
-  AiValidationResult: z.object({
-    DocumentValidations: z.array(documentValidationSchema),
-    Suggestions: z.array(z.string()),
-    Summary: z.string(),
-    Storyline: z.string(),
+  aiValidationResult: z.object({
+    validations: z.array(documentValidationSchema),
+    suggestions: z.array(z.string()),
+    summary: z.string(),
+    storyline: z.string(),
   }),
-  UnclassifiedFiles: z.array(z.string()),
+  unclassifiedFiles: z.array(z.string()),
 });
 
 export const uploadRequestSchema = z.object({

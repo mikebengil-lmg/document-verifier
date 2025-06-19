@@ -17,7 +17,7 @@ A simple React + Vite + Tailwind CSS + Radix UI interface for uploading and vali
    yarn install
    ```
 
-3. Start the development server on port `5050`:
+3. Start the development server on port `5055`:
    ```bash
    yarn dev
    ```
@@ -36,11 +36,11 @@ A simple React + Vite + Tailwind CSS + Radix UI interface for uploading and vali
 ## 🔍 Testing Endpoints
 
 - **Classification (Test Mode):**  
-  `POST http://localhost:8383/api/v1/smart_document_classify_test`  
+  `POST http://localhost:8585/api/v1/smart_document_classify_test`  
   Accepts file uploads (not base64)
 
 - **Validation (Batch):**  
-  `POST http://localhost:8383/api/v1/validate_batch`  
+  `POST http://localhost:8585/api/v1/validate_batch`  
   Accepts structured document payload + clients + enum_filetypes
 
 ## 🧪 Sample Payload for Validation
