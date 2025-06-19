@@ -9,14 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { 
-  AlertTriangle, 
-  Ban, 
-  CheckCircle, 
-  Lightbulb, 
+import {
+  AlertTriangle,
+  Ban,
+  CheckCircle,
+  Lightbulb,
   Info,
-  X 
+  X,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { ValidationResult, DocumentValidation } from "@shared/schema";
 
 interface ResultsModalProps {
@@ -26,20 +27,25 @@ interface ResultsModalProps {
   onUploadMore: () => void;
 }
 
-export default function ResultsModal({ 
-  open, 
-  onClose, 
-  results, 
-  onUploadMore 
+export default function ResultsModal({
+  open,
+  onClose,
+  results,
+  onUploadMore,
 }: ResultsModalProps) {
-  const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(new Set());
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
+    new Set()
+  );
 
   useEffect(() => {
     if (results?.AiValidationResult?.DocumentValidations) {
       // Pre-select documents that are not high risk or explicitly rejected
       const preSelected = new Set<number>();
       results.AiValidationResult.DocumentValidations.forEach((doc, index) => {
-        if (doc.FraudRisk !== "high" && !doc.Status.toLowerCase().includes("review")) {
+        if (
+          doc.FraudRisk !== "high" &&
+          !doc.Status.toLowerCase().includes("review")
+        ) {
           preSelected.add(index);
         }
       });
@@ -48,7 +54,7 @@ export default function ResultsModal({
   }, [results]);
 
   const toggleDocument = (index: number) => {
-    setSelectedDocuments(prev => {
+    setSelectedDocuments((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
@@ -119,15 +125,40 @@ export default function ResultsModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Validation Results</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Validation Results
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Summary Section */}
-          <Card className="bg-gray-50 p-4">
-            <h4 className="font-semibold text-gray-900 mb-2">Validation Summary</h4>
-            <p className="text-gray-700">{results.AiValidationResult.Summary}</p>
-          </Card>
+          <Tabs defaultValue="summary" className="w-full">
+            <TabsList>
+              <TabsTrigger value="summary">Validation Summary</TabsTrigger>
+              <TabsTrigger value="storyline">Document Storyline</TabsTrigger>
+            </TabsList>
+            <TabsContent value="summary">
+              <Card className="bg-gray-50 p-4 mt-2">
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Validation Summary
+                </h4>
+                <p className="text-gray-700">
+                  {results.AiValidationResult.Summary}
+                </p>
+              </Card>
+            </TabsContent>
+            <TabsContent value="storyline">
+              <Card className="bg-gray-50 p-4 mt-2">
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  Inferred Storyline
+                </h4>
+                <p className="text-gray-700 whitespace-pre-line">
+                  {results.AiValidationResult.Storyline ||
+                    "No storyline available."}
+                </p>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           {/* Document Validations */}
           <div>
@@ -135,48 +166,60 @@ export default function ResultsModal({
               Document Validation Results
             </h4>
             <div className="space-y-4">
-              {results.AiValidationResult.DocumentValidations.map((doc, index) => (
-                <Card key={index} className="border border-gray-200 p-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        id={`doc_${index}`}
-                        checked={selectedDocuments.has(index)}
-                        onCheckedChange={() => toggleDocument(index)}
-                        className="w-5 h-5"
-                      />
-                      <div>
-                        <h5 className="font-medium text-gray-900">{doc.FileName}</h5>
-                        {getStatusBadge(doc.Status, doc.FraudRisk)}
+              {results.AiValidationResult.DocumentValidations.map(
+                (doc, index) => (
+                  <Card key={index} className="border border-gray-200 p-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          id={`doc_${index}`}
+                          checked={selectedDocuments.has(index)}
+                          onCheckedChange={() => toggleDocument(index)}
+                          className="w-5 h-5"
+                        />
+                        <div>
+                          <h5 className="font-medium text-gray-900">
+                            {doc.FileName}
+                          </h5>
+                          {getStatusBadge(doc.Status, doc.FraudRisk)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-500">
+                          Document Type
+                        </div>
+                        <div className="font-medium text-gray-900">
+                          {doc.MatchedType.replace(/([A-Z])/g, " $1").trim()}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Document Type</div>
-                      <div className="font-medium text-gray-900">
-                        {doc.MatchedType.replace(/([A-Z])/g, " $1").trim()}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <h6 className="text-sm font-medium text-gray-700 mb-2">
-                        Validation Details
-                      </h6>
-                      <p className="text-sm text-gray-600">{doc.Reason}</p>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">
+                          Validation Details
+                        </h6>
+                        <p className="text-sm text-gray-600">{doc.Reason}</p>
+                      </div>
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">
+                          Fraud Risk:{" "}
+                          <span
+                            className={`capitalize ${getFraudRiskColor(
+                              doc.FraudRisk
+                            )}`}
+                          >
+                            {doc.FraudRisk}
+                          </span>
+                        </h6>
+                        <p className="text-sm text-gray-600">
+                          {doc.FraudNotes}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h6 className="text-sm font-medium text-gray-700 mb-2">
-                        Fraud Risk:{" "}
-                        <span className={`capitalize ${getFraudRiskColor(doc.FraudRisk)}`}>
-                          {doc.FraudRisk}
-                        </span>
-                      </h6>
-                      <p className="text-sm text-gray-600">{doc.FraudNotes}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                )
+              )}
             </div>
           </div>
 
@@ -188,11 +231,15 @@ export default function ResultsModal({
               </h4>
               <Card className="bg-gray-50 p-4">
                 <p className="text-sm text-gray-600 mb-3">
-                  The following files could not be classified and will not be uploaded:
+                  The following files could not be classified and will not be
+                  uploaded:
                 </p>
                 <div className="space-y-2">
                   {results.UnclassifiedFiles.map((fileName, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 text-sm text-gray-700"
+                    >
                       <X className="h-4 w-4 text-red-500" />
                       {fileName}
                     </div>
@@ -209,18 +256,24 @@ export default function ResultsModal({
             </h4>
             <Card className="bg-blue-50 p-4">
               <div className="space-y-2 text-sm text-gray-700">
-                {results.AiValidationResult.Suggestions.map((suggestion, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    {suggestion.includes("(") ? (
-                      <Info className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Lightbulb className="h-4 w-4 text-blue-500" />
-                    )}
-                    <span className={suggestion.includes("(") ? "text-gray-500" : ""}>
-                      {suggestion}
-                    </span>
-                  </div>
-                ))}
+                {results.AiValidationResult.Suggestions.map(
+                  (suggestion, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      {suggestion.includes("(") ? (
+                        <Info className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Lightbulb className="h-4 w-4 text-blue-500" />
+                      )}
+                      <span
+                        className={
+                          suggestion.includes("(") ? "text-gray-500" : ""
+                        }
+                      >
+                        {suggestion}
+                      </span>
+                    </div>
+                  )
+                )}
               </div>
             </Card>
           </div>

@@ -32,6 +32,7 @@ export const validationResultSchema = z.object({
     DocumentValidations: z.array(documentValidationSchema),
     Suggestions: z.array(z.string()),
     Summary: z.string(),
+    Storyline: z.string(),
   }),
   UnclassifiedFiles: z.array(z.string()),
 });

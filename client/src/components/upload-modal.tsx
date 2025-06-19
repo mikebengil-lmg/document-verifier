@@ -24,6 +24,7 @@ import { CloudUpload, X, File, Loader2 } from "lucide-react";
 import { uploadRequestSchema, type ValidationResult } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
 
 interface UploadModalProps {
   open: boolean;
@@ -31,7 +32,11 @@ interface UploadModalProps {
   onSuccess: (results: ValidationResult) => void;
 }
 
-export default function UploadModal({ open, onClose, onSuccess }: UploadModalProps) {
+export default function UploadModal({
+  open,
+  onClose,
+  onSuccess,
+}: UploadModalProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const { toast } = useToast();
 
@@ -46,23 +51,17 @@ export default function UploadModal({ open, onClose, onSuccess }: UploadModalPro
     mutationFn: async (data: { familyId: string; files: File[] }) => {
       const formData = new FormData();
       formData.append("familyId", data.familyId);
-      
+
       data.files.forEach((file) => {
         formData.append("files", file);
       });
 
-      const response = await fetch("/api/validate-docs", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const axiosResponse = await axios.post(
+        "http://localhost:5000/hackathon/validate-docs",
+        formData
+      );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || response.statusText);
-      }
-
-      return response.json();
+      return axiosResponse.data;
     },
     onSuccess: (results) => {
       toast({
@@ -75,7 +74,8 @@ export default function UploadModal({ open, onClose, onSuccess }: UploadModalPro
     onError: (error) => {
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
     },
@@ -130,7 +130,9 @@ export default function UploadModal({ open, onClose, onSuccess }: UploadModalPro
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Upload Documents</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Upload Documents
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -230,7 +232,9 @@ export default function UploadModal({ open, onClose, onSuccess }: UploadModalPro
             <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
-                disabled={uploadMutation.isPending || selectedFiles.length === 0}
+                disabled={
+                  uploadMutation.isPending || selectedFiles.length === 0
+                }
                 className="flex-1 bg-primary hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 {uploadMutation.isPending ? (
